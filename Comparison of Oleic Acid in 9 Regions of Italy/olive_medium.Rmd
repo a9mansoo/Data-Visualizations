@@ -1,0 +1,169 @@
+---
+title: "Olive data"
+subtitle: "Ordering displays"
+fontsize: 9pt
+geometry: margin=.75in
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+header-includes:
+- \usepackage{graphicx}
+- \usepackage{color}
+graphics: yes
+classoption: letter
+---
+```{r setup, echo=FALSE, message=FALSE, error = FALSE, warning=FALSE}
+library(knitr)
+library(loon)
+```
+
+
+This contains measurements on the fatty acid content of 572 different Italian olive oils; eight different fatty acids are measured.  
+The olive oils come from one of nine different olive growing regions in Italy. 
+
+This data are easily available from the `loon` package:
+
+
+```{r, tidy=TRUE}
+library(loon) 
+# The first three rows of which are
+head(olive, 3)
+```
+
+```{r, echo = FALSE}
+head(olive) 
+```
+    
+## Side by side boxplots for fatty acid 'oleic' content in 9 regions of Italy
+
+
+```{r, echo=TRUE, message=FALSE, error = FALSE, warning=FALSE}
+    library(colorspace)
+    cols <- rainbow_hcl(9) # Use these colours.
+```
+     
+```{r}
+# separate the area and oleic acid variable
+area <- olive$Area
+oleic <- olive$oleic
+df <- data.frame(area,oleic)
+par(mar=c(8,4,4,10))
+boxplot(oleic~area, data=df, col=cols, main="Oleic acid content found in 9 areas", las=2, xlab="")
+mtext("Area", side=1)
+```
+    
+## Comparisons based on Eulerians of Oleic acid in 9 regions
+
+```{r, echo=FALSE, message=FALSE, error = FALSE, warning=FALSE}
+  library(PairViz)
+
+```
+```{r}
+  areas <- with(olive, split(oleic,Area))
+  areaNames <- names(areas)
+  ord <- eulerian(9)
+  ord
+```
+ 
+  - 36 pairwise comparisons. 
+    
+```{r}
+  par(mar=c(9,4,4,10))
+  boxplot(areas[ord], col=cols[ord], main="Oleic acid content found in 9 regions", las=2, ylab="oleic acid")
+  mtext("Area", side=1)
+```
+    
+  
+  We can see the North Apulia region appears more than once before all the other nodes appear.     
+    
+## Comparisons based on Hamiltonian of Oleic acid in 9 regions
+
+We want to construct a hamiltonian, so that all groups appear once followed by another. 
+```{r}
+        ordH <- hpaths(9, matrix=FALSE)
+        ordH
+```
+  As we can see that all the nodes appear in a pairwise comparison before repeating again.
+              
+```{r}
+       par(mar=c(9,4,4,10))       
+       boxplot(areas[ordH], col=cols[ordH], main="Oleic acid content found in 9 regions", las=2, ylab="oleic acid")
+       mtext("Area", side=1)
+```
+  
+  
+  We see 9 different colours hence 9 different regions before another group for comparison appears. 
+  
+
+## Pairwise T test for Oleic acid data
+
+Using the r function for producing pairwise t test values. 
+```{r}
+        # Get p-values for each area for oleic
+        test <- with(olive, pairwise.t.test(oleic, Area))
+        pvals <- test$p.value
+      
+        # Create a distance matrix
+        groups <- length(areaNames)
+        weights <- matrix(0, nrow=groups, ncol=groups)
+        
+        rownames(weights) <- areaNames
+        colnames(weights) <- areaNames
+        weights[2:groups, 1:(groups-1)] <- pvals
+        
+        # Create a matrix where diagonal is 0 and the upper and lower half are equal. 
+        diag(weights) <- 0
+        
+        for (i in 1:(groups-1)){
+          for (j in (i+1):groups){
+            weights[i,j] <- weights[j,i]
+          }
+        }
+        
+        round(weights, 4)
+        
+        # Most significant difference would have lowest p-value so we need a greedy algorithm which goes from lowest to highest edge weights. 
+        low2high_ord <- eulerian(weights); colnames(weights)[low2high_ord]
+        low2high_ord
+         
+```
+```{r}
+        par(mar=c(7,7,2,2))       
+        boxplot(areas[low2high_ord], col=cols[low2high_ord], main="Oleic acid content found in 9 regions", las=2)
+```
+  
+  
+  Yes, since the lowest p-value is selected from each node and no edge (pairwise comparison) is repeated. The ordering is successful because no pairwise comparison is repeated and using a Greedy eulerian from lowest to highest choosing the edge from the node with the smallest p-value and so on without repeating the edges from the node and so no comparison is repeated. 
+
+
+```{r}
+      low2high_ord[1:8]
+      par(mar=c(7,7,2,2))  
+      boxplot(areas[low2high_ord], col=cols[low2high_ord], main="Oleic acid content found in 9 regions", las=2)
+```
+
+
+## Comparison of each growing area in the south and each area in Sardinia
+
+The 4 Southern areas are Sicily, South-Apulia, North-Apulia and Calabria. The 2 Sardinia areas are Inland-Sardinia and Coast-Sardinia. 
+      
+```{r}
+      south_nodes <- c("Sicily", "South-Apulia", "North-Apulia", "Calabria")
+      sardinian_nodes <- c("Inland-Sardinia", "Coast-Sardinia")
+      g <- bipartite_graph(south_nodes, sardinian_nodes)
+      plot(g, "circo")
+```
+            
+Construct Eulerian using the graph from part above.
+```{r}
+        gEulOrd <- eulerian(g)
+        gEulOrd
+```
+  
+   Construct boxplot using this eulerian order
+```{r}
+        par(mar=c(9,4,4,10)) 
+        names(cols) <- areaNames
+        boxplot(areas[gEulOrd], col=cols[gEulOrd], main="Oleic acid comparison between South and Sardinia region", las=2)
+```
