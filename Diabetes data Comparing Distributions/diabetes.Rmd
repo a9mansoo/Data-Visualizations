@@ -1,0 +1,224 @@
+---
+title: "Diabetes data: comparing distributions"
+fontsize: 9pt
+geometry: margin=.75in
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+header-includes:
+- \usepackage{graphicx}
+- \usepackage{color}
+graphics: yes
+classoption: letter
+---
+```{r, setup, echo=FALSE}
+library(knitr)
+library(qqtest)
+```
+
+
+```{r}
+# For example, you could use the source command.  
+# Here the file is stored in the current directory
+load("diabetes.Rda")
+# Once loaded the data is available as the data frame `diabetes'
+head(diabetes)
+```
+
+
+The variate \texttt{SSPG} stands for steady state plasma glucose which measures the patient's insulin resistance, a pathological condition where the body's cells fail to respond to the hormone insulin.
+
+## Density Estimate Plot
+
+```{r}
+  # density estimate for SSPG
+  SSPG <- diabetes[,"SSPG"]
+  head(as.data.frame(SSPG))
+  plot(density(SSPG), main="Density plot for SSPG")
+  polygon(density(SSPG), col = "steelblue")
+  
+```
+  
+  SSPG has it's first peak at around hundred and then a second peak between 200-300, it also has a long right tail. The density plot implies that numerous values for SSPG lie within the hundreds.  
+    
+## Quantile Plot for SSPG
+
+```{r}
+  # Quantile plot 
+  p_x <- ppoints(SSPG)
+  plot(p_x, sort(SSPG), main="Quantile plot for SSPG")
+  
+```        
+  
+  The quantiles are closely grouped together at the begininng from 0.0 to upto 0.8 and then trail off beyond that. The quantiles around 1.0 and far apart.The general trend of the quantiles is increasing.The values for SSPG span upto more than 400. Around the 100 mark, we see the values are quite close together. 
+  
+
+## Comparing SSPG distribution to the normal distribution    
+
+```{r}
+    set.seed(3124159)
+    qqtest(SSPG, dist="normal", envelope=TRUE, main="SSPG QQ plot")
+```
+    
+  The left tail is not fully enveloped in the grey region but the centre qunatiles are alinged in the envelope lying in the 90-95% range. Since the majority of the data points lie inside the envelope except for a few data points, it seems like a reasonable estimate that the data follows a normal distribution. 
+    
+    
+The last variate, `ClinClass`, represents the classification of each patient according to the 1979 medical criteria into one of three groups: 1 = "Overt Diabetic",  2 = "Chemical Diabetic", and  3 = "Normal". 
+
+## Back to Back density line-up plot to assess whether the normal and diabetic (chemical and overt combined) SSPG values come from the same distribution
+    
+    
+    ```{r}
+    # Extract the normal and classify the non normal as other
+    set.seed(3124159)
+    normal_data <- diabetes[, "ClinClass"] == 3
+    
+    x <- diabetes[normal_data, "SSPG"]
+    y <- diabetes[!normal_data, "SSPG"]
+    data <- list(x=x, y=y)
+    
+    ```
+    
+```{r}
+    set.seed(3124159)
+    # Mix the data randomly
+    mixRandomly <- function(data){
+      x <- data$x
+      y <- data$y
+      m <- length(x)
+      n <- length(y)
+      mix <- c(x, y)
+      select4x <- sample(1:(m+n), m, replace=FALSE)
+      new_x <- mix[select4x]
+      new_y <- mix[-select4x]
+      list(x=new_x, y=new_y)
+    }
+    mixRandomly(data)
+    
+    # Line up test function
+    lineup <- function(data, showSubject=NULL, generateSubject=NULL, trueLoc=NULL, layout =c(4,5)) {
+          # Get the number of subjects in total
+          nSubjects <- layout[1] * layout[2]
+          if (is.null(trueLoc)) {trueLoc <- sample(1:nSubjects, 1)}
+          if (is.null(showSubject)) {stop("need a plot function for the subject")}
+          if (is.null(generateSubject)) {stop("need a function to generate subject")}
+          # Need to decide which subject to present
+          presentSubject <- function(subjectNo) {
+                if(subjectNo != trueLoc) {data <- generateSubject(data)}
+                showSubject(data, subjectNo) }
+          # This does the plotting
+          savePar <- par(mfrow=layout, mar=c(2.5, 1, 3, 0.1), oma=rep(0,4))
+          sapply(1:nSubjects, FUN = presentSubject)
+          par(savePar)
+          return (trueLoc)
+    }
+    
+    # back2back
+    back2back <- function(data, subjectNo) {
+          ylim <- extendrange(c(data$x, data$y))
+          Xdensity <- density(data$x, bw="SJ")
+          Ydensity <- density(data$y, bw="SJ")
+          Ydensity$y <- - Ydensity$y
+          xlim <- extendrange(c(Xdensity$y, Ydensity$y))
+          xyswitch <- function(xy_thing) {
+            yx_thing <-xy_thing
+            yx_thing$x <- xy_thing$y
+            yx_thing$y <- xy_thing$x
+            yx_thing 
+          }
+          
+          plot(xyswitch(Xdensity), col="firebrick",
+          main=paste(subjectNo), cex.main = 1, ylab="", xlab="", xaxt="n", yaxt="n", xlim=xlim, ylim=ylim)
+          polygon(xyswitch(Xdensity), col=adjustcolor("firebrick", 0.4))
+          lines(xyswitch(Ydensity), col="steelblue")
+          polygon(xyswitch(Ydensity), col=adjustcolor("steelblue", 0.4))
+    }
+    
+    
+    trueloc <- lineup(data, generateSubject = mixRandomly, showSubject = back2back)
+```
+  
+  The hypothesis is that the two groups come from the same distribution. Looking at the back2back density plot, plot number 19 looks the most different from the rest. If the both the data are drawn from the same distribution and we shuffle them randomly then there shouldn't be much of a difference between any of these plots. 
+  
+```{r}
+  trueloc  
+```
+ 
+  So there is evidence against the null hypothesis with a significance level of 1/20. 
+  
+  
+        
+## Comparing 3 different Clinical Classes
+
+        
+```{r, echo=TRUE, eval=FALSE, fig.align="center", fig.width=10, fig.height=10}
+data <- list(x=x, y=y, z=z)
+lineup(data, 
+       generateSuspect = mixRandomly, 
+       showSuspect = myQuantilePlot, 
+       layout=c(5,4))
+```
+            
+        
+        
+```{r}
+# Extract the normal and classify the non normal as other
+    set.seed(314159)
+    normal_data <- diabetes[, "ClinClass"] == 3
+    overt_data <- diabetes[, "ClinClass"] == 1
+    chemical_data <- diabetes[, "ClinClass"] == 2
+    x <- diabetes[normal_data, "SSPG"]
+    y <- diabetes[overt_data, "SSPG"]
+    z <- diabetes[chemical_data, "SSPG"]
+    data <- list(x=x, y=y, z=z)
+
+mixRandomly <- function(data){
+      x <- data$x
+      y <- data$y
+      z <- data$z
+      m <- length(x)
+      n <- length(y)
+      o <- length(z)
+      mix <- c(x, y, z)
+      new_x <- sample(mix, m, replace=FALSE)
+      new_y <- sample(mix, m, replace=FALSE)
+      new_z <- sample(mix, m, replace=FALSE)
+      list(x=new_x, y=new_y, z=new_z)
+}
+
+mixRandomly(data)
+
+myQuantilePlot <- function(data, subjectNo) {
+        ylim <- extendrange(c(data$x, data$y, data$z))
+        n_x <- length(data$x)
+        n_y <- length(data$y)
+        n_z <- length(data$z)
+        p_x <- ppoints(n_x)
+        p_y <- ppoints(n_y)
+        p_z <- ppoints(n_z)
+        plot(p_x, sort(data$x), type="b",
+        col=adjustcolor("firebrick", 0.4), pch=19, cex=2,
+        ylim = ylim,
+        main=paste( subjectNo), # display subject number
+        cex.main = 1, # increase subject number size
+        ylab="", xlab="", xaxt="n", yaxt="n")
+        
+        points(p_y, sort(data$y), type="b",
+        col=adjustcolor("steelblue", 0.4), pch=19, cex=2)
+        
+        points(p_z, sort(data$z), type="b", col=adjustcolor("green", 0.1), pch=19, cex=2)
+}
+
+trueloc <- lineup(data, 
+       generateSubject = mixRandomly, 
+       showSubject = myQuantilePlot, 
+       layout=c(4,5))
+
+
+```
+  
+  Plot 10 looks different from the rest of the plots, thus we have evidence against the null hypothesis that all 3 come from the same distribution with a significance of 1/20. 
+```{r}
+  trueloc
+```
