@@ -1,0 +1,59 @@
+---
+title: "Air passengers 1949-1960"
+fontsize: 9pt
+geometry: margin=.75in
+output:
+  html_document:
+    df_print: paged
+header-includes:
+- \usepackage{graphicx}
+- \usepackage{color}
+graphics: yes
+classoption: letter
+---
+
+
+**Airline passengers**.   
+Here we will examine the monthly total of the number of air passengers in the US from 1949 to 1960.
+
+The data are available as the data set `AirPassengers` from the `datasets` package in the standard `R` distribution.
+
+```{r setup data}
+AirPassengers
+```
+
+## Decompose Time Series of Airline Passengers Data
+   
+```{r}
+    decomposed <- decompose(AirPassengers)
+    plot(decomposed)
+```
+
+The general trend is increasing with time. It is reasonably to say that it is linearly increasing.
+  
+The seasonality shows an increase in height in the middle of the year. And this trend is observed over the years. It appears to be periodic per year. 
+  
+The residuals show high variability at the beginning up to 1954 and again from 1958 and beyond. However, inbetween 1954 and 1958, we see periods of low variability. A general trend is seen upto 1954 and another forming after 1958.
+
+## Decompose Time Series using Loess smoothing of Airline Passengers Data
+   
+
+```{r}
+    stl_obj <- stl(AirPassengers, s.window=7, s.degree=1)
+    plot(stl_obj)
+```
+    
+The trend is seen as generally increasing over the years showing a linear trend. It is significant since compared to the residual variation, the trend is large.  
+  
+The seasonal trend is no longer periodic, but has increasing amplitude over the years. It is significant as well compared to the residual variation. 
+  
+The residuals show greater variation after 1958 compared to the other years. They do not seem to show a general trend with different variation throughout the years. 
+
+## Comparison of the decomposition
+
+The major difference is in the seasonal graph where the decompose one has a periodic pattern being shown over the years whereas the stl one has one where the one seasonal trend is increasing in amplitude over the years starting low and peaking for each years. The residuals are also different in terms of the variation they show throughout the years. 
+  
+Decompose takes the average of the detrended season value for all years with its average removed so they are about 0 and then connects each month together. The seasonality is thus identical for each year.
+Stl on the other hand, smooths the values for a particular month over all years and uses the smoothed values as the estimate for the month for each year. Stl uses lowess regression to fit these curves. 
+  
+The stl model is preferred since it captures more variability in the seasonality for the monthly air passengers indicating anything unusual that might be observed in a season. Since s.window specifies the frequency of 7 years in this case, we can see greater variability in the 7 year cycle not captured by decompose. 
