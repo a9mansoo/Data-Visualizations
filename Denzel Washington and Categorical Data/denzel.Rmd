@@ -1,0 +1,187 @@
+---
+title: "Denzel"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+geometry: margin=.75in
+graphics: yes
+header-includes:
+- \usepackage{graphicx}
+- \usepackage{color}
+fontsize: 9pt
+classoption: letter
+---
+
+```{r, setup, echo=FALSE}
+library(knitr)
+```
+
+
+The actor \href{https://en.wikipedia.org/wiki/Denzel_Washington}{\color{blue} Denzel Washington} has appeared in many movies.  In some he appears with facial hair, or with a hat, or wearing glasses, or some combination of these.
+    
+This will provide data on twenty-one movies in which Mr. Washington has appeared and what sort of  choice of accessory (i.e. hat, facial hair, glasses) he was sporting in each movie.  The data is given in two forms, one as a data frame called `denzel` whose `row.names(denzel)` will give the movie titles. Its three variates are binary, each indicating whether Mr. Washington sported one or more of the three possibilities of facial hair, glasses, or a hat.  The other contains the same information (absent the movie titles) but as  a table of counts called `denzelTable`.
+
+
+## Venn Diagram construction for three sets "facial hair", "glasses" and "hat" based on the movies
+
+    ```{r, eval=FALSE}
+    source('denzel.R')
+    venn <- venneuler(venndenzel)
+    plot(venn)
+    ```
+    In constructing `movies` and `choices` it might be best to construct three separate pairs of vectors first, one for each choice and then concatenate them together.  For example,
+```{r}
+    library(venneuler)
+    library(gridExtra)
+    source('denzel.R')
+```
+    
+```{r}
+    facialhair <- denzel[,"facialhair"] == "yes"
+    facialhairMovies <- row.names(denzel)[facialhair]
+    facialhairChoices <- rep("facial hair", length(facialhairMovies))
+    
+    hat <- denzel[, "hat"] == "yes"
+    hatMovies <- row.names(denzel)[hat]
+    hatChoices <- rep("hat", length(hatMovies))
+    
+    glasses <- denzel[, "glasses"] == "yes"
+    glassesMovies <- row.names(denzel)[glasses]
+    glassesChoices <- rep("glasses", length(glassesMovies))
+    
+    
+    movies <- c(facialhairMovies, hatMovies, glassesMovies)
+    choices <- c(facialhairChoices, hatChoices, glassesChoices)
+    venndenzel <- data.frame(movies, choices)
+    venn <- venneuler(venndenzel)
+    plot(venn)
+```
+  
+  
+ The largest circle appears to be facial hair, so a popular choice is facial hair. The second popular choice appears to be a hat and the last is glasses. There is a great
+ overlap with facial hair and hat, so those two choice together seem to be a popular choice. There is also a large overlap between the 3 as well. 
+
+```{r}
+     summary(venn) 
+```
+  
+ The areas of facial hair is best represented since the counts for facial hair is the most. 
+ 
+ The worst are the intersections between facial hair and glasses, facial hair and hat
+ and glasses and hat, since they have the same intersection values but according to the diagram
+ it appears that glasses and hat are least represented. 
+  
+## Barplots for marginal tables of "facial hair", "glasses" and "hat"
+
+```{r}
+    # Facial hair x hat
+    facialhair_hat <- margin.table(denzelTable, margin=c(3,1))
+    facialhair_hat
+```
+
+```{r}
+    # Facial hair x glasses
+    facialhair_glasses <- margin.table(denzelTable, margin=c(3,2))
+    facialhair_glasses
+```
+
+```{r}
+    # hat x glasses
+    hat_glasses <- margin.table(denzelTable, margin=c(1,2))
+    hat_glasses
+```
+
+```{r}
+    par(mar = c(5, 5, 4, 6), xpd=TRUE)
+    cols <- adjustcolor(c("blue", "red"))
+    barplot(facialhair_hat, main="Facial Hair by Hat", xlab="hat", ylab="Counts", col=cols, ylim=c(0,20))
+    legend(x="bottomright", legend=c("yes", "no"), fill=cols, title="facial hair", cex=0.75, xpd=TRUE, inset = c(-0.2, 0))
+```
+   
+```{r}
+    par(mar = c(5, 5, 4, 6), xpd=TRUE)
+    cols <- adjustcolor(c("blue", "red"))
+    barplot(facialhair_glasses, main="Facial Hair by Glasses", xlab="glasses", ylab="Counts", col=cols, ylim=c(0,20))
+    legend(x="bottomright", legend=c("yes", "no"), fill=cols, title="facial hair", cex=0.75, xpd=TRUE, inset = c(-0.2, 0))
+```
+    
+```{r}
+    par(mar = c(5, 5, 4, 6), xpd=TRUE)
+    cols <- adjustcolor(c("blue", "red"))
+    barplot(hat_glasses, main="Hat by Glasses", xlab="glasses", ylab="Counts", col=cols, ylim=c(0,20))
+    legend(x="bottomright", legend=c("yes", "no"), fill=cols, title="hat", cex=0.75, xpd=TRUE, inset = c(-0.2, 0))
+```
+  
+  From the barplot, facial hair is usually coupled with a hat. Facial hair is least coupled with glasses. In an equal number of movies, Denzel
+is seen with facial hair and no glasses or facial hair with glasses. Similarily, in the hat vs glasses plot, we can see that in an equal number of movies, he wears no glasses and a hat or no glasses and no hat. 
+  
+  In the barplot, it is easy to compare the bottom bars, where either facial hair or hat is yes. However, the bar stacked on top is difficult to compare to each other since the scales are not aligned in some of the bar plots. In the venn diagram, the areas of the circles is proportional to the count which makes it easier to make comparisons between the three separate categories and the intersections of each of the separate categories. Thus the venn diagram is easier to decode compared to the barplots. 
+  
+## Eikosograms for conditional on each variable "facial hair", "glasses" and "hat"
+  
+ 
+
+```{r}
+    library(eikosograms)
+    eikos(y="facialhair", x="hat", data=denzel)
+```
+  
+  Given that Denzel is wearing a hat, the probability of him not having facial hair is 0.5. 
+  Given that Denzel is wearing a hat, the probability of him having facial hair is also 0.5. 
+  Given that Denzel is not wearing a hat, the probability of him having facial hair is 0.64. 
+  Given that Denzel is not wearing a hat, the probability of him not having facial hair is 0.36. 
+  
+  From this we can conclude that given that Denzel is wearing a hat, the probability of him having 
+  or not having facial hair is the same. Given that Denzel is not wearing a hat, the probability 
+  of him having facial hair is higher than him not having facial hair.
+    
+```{r}
+    eikos(y="facialhair", x="glasses", data=denzel)
+```
+    
+  Given that Denzel is wearing glasses, the probability of him not having facial hair is 0.5. 
+  Given that Denzel is wearing glasses, the probability of him having facial hair is 0.5. 
+  Given that Denzel is not wearing glasses, the probability of him not having facial hair is 0.38.
+  Given that Denzel is not wearing glasses, the probability of him having facial hair is 0.62. 
+  We can conclude that given that Denzel is wearing glasses, the probability of him having facial hair is the same. 
+  Given that Denzel is not wearing glasses, the probability of him having facial hair is higher. 
+  
+    
+```{r}
+    eikos(y="hat", x="glasses", data=denzel)
+```
+    
+   Since this is a flat surface, the two variates are independent of each other. 
+   Since this is a eikosogram of him wearing a hat conditional on glasses, given that
+   he is wearing or not wearing glasses does not impact the response which is him wearing
+   a hat or not. 
+  
+
+```{r}
+    eikos(y="facialhair", x=c("glasses", "hat"), data=denzel)
+```
+    
+  Given that Denzel is wearing a hat and whether or not he is wearing glasses has the same probability of him having or not having facial hair. 
+  Given that Denzel is not wearing a hat and he is wearing glasses, the probability of him not having facial hair is 0.5.
+  Given that Denzel is not wearing a hat and he is not wearing glasses, there is a higher probability of him (0.75) having facial hair. 
+  We can conclude that given that Denzel is not wearing a hat and glasses, he probably has facial hair. 
+    
+```{r}
+    eikos(y="glasses", x=c("facialhair", "hat"), data=denzel)
+```
+    
+   Given that Denzel is wearing a hat and whether he has or does not have facial hair has the same probability of him not wearing glasses.
+   Given that Denzel is not wearing a hat and does not have facial hair, the probability of him having glasses is higher than him not having glasses.
+   Given that Denzel is not wearing a hat and does have facial hair, the probability of him not having glasses is higher than him having glasses.
+   Thus we can conclude that given that Denzel is not wearing a hat and does not have facial hair, he is probably wearing glasses and given that he is not    wearing a hat and does have facial hair, he is probably not wearing glasses. 
+  
+```{r}
+    eikos(y="hat", x=c("facialhair", "glasses"), data=denzel)
+```
+    
+   Given that Denzel is wearing glasses and whether he has or does not have facial hair, the probability of him having or not having a hat is the same. 
+   Given that Denzel is not wearing glasses and he has facial hair, the probability of him not having a hat is 0.6.
+   Given that Denzel is not wearing glasses and does not have facial hair, the probability of him having a hat is 0.67.
+   Thus we can conclude that given that Denzel is not wearing glasses and does not have facial hair, he probably has a hat on and 
+   given that Denzel is not wearing glasses and has facial hair, he probably does not have a hat on. 
