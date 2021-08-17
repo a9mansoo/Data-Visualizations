@@ -46,3 +46,23 @@ Density Plots:
 ![image](https://user-images.githubusercontent.com/63682861/129811837-17a991d6-f711-4fc9-a1ca-34160bfcd410.png)
 
 ![image](https://user-images.githubusercontent.com/63682861/129811859-ac961712-71f4-4769-8ef3-2da49fdf9806.png)
+
+## Diabetes data Comparing Distributions
+
+The diabetes RMD explores comparing steady state plasma glucose (SSPG) in normal and diabetic patients. We first begin to evaluate the distribution of the SSPG variate:
+
+Density Plot:
+
+![image](https://user-images.githubusercontent.com/63682861/129812166-e09cf6ac-76a3-4d03-af9d-1674f5dc2abd.png)
+
+QQ Plot to compare SSPG variatet with the Normal Distribution:
+
+![image](https://user-images.githubusercontent.com/63682861/129812220-ab5d257f-5233-47f0-80f7-a8e32bcf1b67.png)
+
+After analyzing the distribution, we make the comparison with a visual hypothesis test using Back2Back Histograms comparing the clinical classes of normal and chemical diabetic patients:
+
+![image](https://user-images.githubusercontent.com/63682861/129812292-1417750c-d18f-40be-8239-d78e5a6aba40.png)
+
+Then a further comparison of the 3 clinical classes using a visual hypothesis test with quantile plots:
+
+![image](https://user-images.githubusercontent.com/63682861/129812360-38dec83f-3b27-4acd-8c0e-ec4397988511.png)
