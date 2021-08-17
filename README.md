@@ -66,3 +66,30 @@ After analyzing the distribution, we make the comparison with a visual hypothesi
 Then a further comparison of the 3 clinical classes using a visual hypothesis test with quantile plots:
 
 ![image](https://user-images.githubusercontent.com/63682861/129812360-38dec83f-3b27-4acd-8c0e-ec4397988511.png)
+
+## Comparison of Oleic Acid in 9 Regions of Italy
+
+The olive_medium RMD visually compares the fatty acid Oleic Acid in 9 regions of Italy. 
+
+A comparison is made based on an Eulerian of the oleic acid content in 9 regions: 
+
+![image](https://user-images.githubusercontent.com/63682861/129812582-c00c0fa7-bb4d-4773-8a99-b29087789182.png)
+
+A comparison is made based on a Hamiltonian of the oleic acid content in 9 regions:
+
+![image](https://user-images.githubusercontent.com/63682861/129812624-ef47fd0c-35d1-4659-bdce-2eaee90d3f5f.png)
+
+A pairwise t-test is conducted based on the ordering to determine the significance between the pairwise comparisons:
+
+![image](https://user-images.githubusercontent.com/63682861/129812712-ee090844-f2a1-48f9-8963-d3f11beb9fa9.png)
+
+Finally, a comparison of the growing areas in the south and each area in Sardinia are subjected to a pariwise comparison: 
+
+Graphically the comparisons being made are:
+
+![image](https://user-images.githubusercontent.com/63682861/129812788-a97976ae-a7ed-430e-bded-3fb2ca037b74.png)
+
+A visual boxplot to illustrate the comparison: 
+
+![image](https://user-images.githubusercontent.com/63682861/129812830-8d2c61bc-a703-4f59-b5f5-c5ee3230c46f.png)
+
